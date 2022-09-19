@@ -1,0 +1,10 @@
+{
+	"dirs": {
+		"logdir": "../AppLog",
+		"recdir": "~/mvRecordings/"
+	},
+	"camera": {
+		"family": "mvBlueCougar",
+		"interface": "DeviceSpecific"
+	}
+}

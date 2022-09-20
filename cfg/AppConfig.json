@@ -1,7 +1,7 @@
 {
 	"dirs": {
 		"logdir": "../AppLog",
-		"recdir": "~/mvRecordings/"
+		"recdir": "/home/viplix3/mvRecordings/"
 	},
 	"camera": {
 		"family": "mvBlueCOUGAR",

@@ -4,7 +4,7 @@
 		"recdir": "~/mvRecordings/"
 	},
 	"camera": {
-		"family": "mvBlueCougar",
-		"config": "cfg/mvBlueCOUGAR-XD1012b.xml"
+		"family": "mvBlueCOUGAR",
+		"config": "cfg/mvBlueCougar-ColorCorrectionsIndoor.xml"
 	}
 }

@@ -141,7 +141,7 @@ def executeAcquisitionProcess(cameraObject,
                             statisticsObject.captureTime_s.name() + ": " +
                             statisticsObject.captureTime_s.readS())
                 capturedImage = convertCapturedBufferToImage(pRequest)
-                outImgFileName = "{}.png".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+                outImgFileName = "{}.jpg".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
                 capturedImage.save(os.path.join(recordingDir, outImgFileName))
 
                 if pPreviousRequest is not None:

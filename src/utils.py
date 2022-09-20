@@ -23,7 +23,7 @@ def setupDirs(opts):
     recordingDir = getDateTimeRecordingDir(opts)
     logDir = opts["dirs"]["logdir"]
 
-    # os.makedirs(recordingDir, exist_ok=True)
+    os.makedirs(recordingDir, exist_ok=True)
     os.makedirs(logDir, exist_ok=True)
 
     return recordingDir, logDir

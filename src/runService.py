@@ -13,9 +13,13 @@ if __name__ == "__main__":
     logger.info("Recorded images will be saved at path " + recordingDir)
 
     mvDeviceUtils.findActiveDevices()
-    mvDeviceUtils.initCamera(opts["camera"]["family"], opts["camera"]["config"])
+    cameraObject, functionalInterface = mvDeviceUtils.initCamera(
+        opts["camera"]["family"], opts["camera"]["config"])
 
     # TODO: Implement this function to initialize MQTT pub/sub
     # initPubSub()
 
-    mvDeviceUtils.initRecording(recordingDir)
+    mvDeviceUtils.initAcquisition(cameraObject, functionalInterface)
+    mvDeviceUtils.executeAcquisitionProcess(cameraObject,
+                                            functionalInterface,
+                                            recordingDir)

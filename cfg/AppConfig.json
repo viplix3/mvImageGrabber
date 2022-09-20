@@ -5,6 +5,6 @@
 	},
 	"camera": {
 		"family": "mvBlueCougar",
-		"interface": "DeviceSpecific"
+		"config": "cfg/mvBlueCOUGAR-XD1012b.xml"
 	}
 }

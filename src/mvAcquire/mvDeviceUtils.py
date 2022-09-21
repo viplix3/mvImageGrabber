@@ -5,7 +5,7 @@ import logging
 
 from datetime import datetime
 from time import sleep
-from PIL import Image
+import cv2
 
 from mvIMPACT import acquire
 
@@ -113,9 +113,8 @@ def convertCapturedBufferToImage(capturedBuffer):
     arr.shape = (capturedBuffer.imageHeight.read(),
                  capturedBuffer.imageWidth.read(),
                  -1)
-    arr = arr[:, :, :3] # 4th channel is redundant, we can remove it
+    capturedImage = arr[:, :, :3]  # 4th channel is redundant, we can remove it
 
-    capturedImage = Image.fromarray(arr, 'RGB')
     return capturedImage
 
 
@@ -140,9 +139,11 @@ def executeAcquisitionProcess(cameraObject,
                             statisticsObject.errorCount.readS() + ", " +
                             statisticsObject.captureTime_s.name() + ": " +
                             statisticsObject.captureTime_s.readS())
+
+                # TODO: Currently convert and write is bottleneck, create separate thread
                 capturedImage = convertCapturedBufferToImage(pRequest)
                 outImgFileName = "{}.jpg".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-                capturedImage.save(os.path.join(recordingDir, outImgFileName))
+                cv2.imwrite(os.path.join(recordingDir, outImgFileName), capturedImage)
 
                 if pPreviousRequest is not None:
                     pPreviousRequest.unlock()

@@ -123,34 +123,49 @@ def executeAcquisitionProcess(cameraObject,
     logger.info("Starting acquisition")
     statisticsObject = acquire.Statistics(cameraObject)
     pPreviousRequest = None
+    numFramesCaptured = 1
+    FPS = []
 
     while True:
-        requestNr = cameraFunctionalInterface.imageRequestWaitFor(timeout_ms)
-        if cameraFunctionalInterface.isRequestNrValid(requestNr):
-            pRequest = cameraFunctionalInterface.getRequest(requestNr)
-            if pRequest.isOK:
-                logger.info(cameraObject.serial.read() + ": " + 
-                            statisticsObject.framesPerSecond.name() + ": " +
-                            statisticsObject.framesPerSecond.readS() + ", " +
-                            statisticsObject.errorCount.name() + ": " +
-                            statisticsObject.errorCount.readS() + ", " +
-                            statisticsObject.captureTime_s.name() + ": " +
-                            statisticsObject.captureTime_s.readS())
+        try:
+            requestNr = cameraFunctionalInterface.imageRequestWaitFor(timeout_ms)
+            if cameraFunctionalInterface.isRequestNrValid(requestNr):
+                pRequest = cameraFunctionalInterface.getRequest(requestNr)
+                if pRequest.isOK:
+                    numFramesCaptured += 1
+                    FPS.append(float(statisticsObject.framesPerSecond.readS()))
+                    if numFramesCaptured % 100 == 0:
+                        avgFPS = numpy.average(FPS)
+                        # FPS = []
+                        logMsg = "Captured %d frames " % numFramesCaptured
+                        logMsg += cameraObject.serial.read() + ": "
+                        logMsg += "Average" + statisticsObject.framesPerSecond.name() + ": "
+                        logMsg += str(avgFPS) + ", "
+                        logMsg += statisticsObject.errorCount.name() + ": "
+                        logMsg += statisticsObject.errorCount.readS() + ", "
+                        logMsg += statisticsObject.captureTime_s.name() + ": "
+                        logMsg += statisticsObject.captureTime_s.readS()
+                        logger.info(logMsg)
 
-                capturedImage = convertCapturedBufferToImage(pRequest)
-                imageObj = {}
-                imageObj["timestamp"] = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                imageObj["image"] = capturedImage
-                imageWriter.addImageToBuffer(imageObj)
+                    capturedImage = convertCapturedBufferToImage(pRequest)
+                    imageObj = {}
+                    imageObj["timestamp"] = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
+                    imageObj["image"] = capturedImage
+                    imageWriter.addImageToBuffer(imageObj)
 
-                if pPreviousRequest is not None:
-                    pPreviousRequest.unlock()
-                pPreviousRequest = pRequest
-                cameraFunctionalInterface.imageRequestSingle()
-        else:
-            logger.error("imageRequestWaitFor failed: {}, {}".format(
-                         requestNr,
-                         acquire.ImpactAcquireException.getErrorCodeAsString(requestNr)))
+                    if pPreviousRequest is not None:
+                        pPreviousRequest.unlock()
+                    pPreviousRequest = pRequest
+                    cameraFunctionalInterface.imageRequestSingle()
+            else:
+                logger.error("imageRequestWaitFor failed: {}, {}".format(
+                            requestNr,
+                            acquire.ImpactAcquireException.getErrorCodeAsString(requestNr)))
+        except KeyboardInterrupt:
+            logger.warn("KeyboardInterrupt")
+            logger.info("Cleaning up")
+            imageWriter.stopImageIOThread()
+            return
 
 
 def initAcquisition(cameraObject, cameraFunctionalInterface):

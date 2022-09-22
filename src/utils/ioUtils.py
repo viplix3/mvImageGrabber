@@ -9,10 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 class ImageIO:
-    def __init__(self, recordingDir, bufferSize=50):
+    def __init__(self, recordingDir, bufferSize=500, writeFreqCount=200):
         self.recordingDir = recordingDir
         self.bufferSize = bufferSize
         self.imageBuffer = deque(maxlen=bufferSize)
+        self.writeBufferSize = writeFreqCount
 
         self.exitEvent = threading.Event()
         self.imageBufferLock = threading.Lock()
@@ -33,8 +34,13 @@ class ImageIO:
         logger.info("Stopping immage IO thread")
 
         with self.threadCondition:
+            logger.info("Dumpining images in queue")
+            while len(self.imageBuffer) > 0:
+                imageData = self.imageBuffer.popleft()
+                self.dumpImageToDisk(imageData)
+
             self.exitEvent.set()
-            self.threadCondition.notify_all()
+            self.threadCondition.notify()
         self.imageBuffer.clear()
         self.imageIOThread.join()
 
@@ -42,9 +48,11 @@ class ImageIO:
         while not self.exitEvent.is_set():
             with self.threadCondition:
                 self.threadCondition.wait()
-                while len(self.imageBuffer) > 5:
-                    image = self.imageBuffer.popleft()
-                    self.dumpImageToDisk(image)
+                if len(self.imageBuffer) > self.writeBufferSize:
+                    while len(self.imageBuffer) > 0:
+                        imageData = self.imageBuffer.popleft()
+                        self.dumpImageToDisk(imageData)
+                self.threadCondition.notify()
 
     def dumpImageToDisk(self, image):
         cv2.imwrite(
@@ -56,4 +64,4 @@ class ImageIO:
         with self.imageBufferLock:
             self.imageBuffer.append(image)
         with self.threadCondition:
-            self.threadCondition.notify_all()
+            self.threadCondition.notify()

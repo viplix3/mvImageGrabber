@@ -1,11 +1,9 @@
-import os
 import ctypes
 import numpy
 import logging
 
 from datetime import datetime
 from time import sleep
-import cv2
 
 from mvIMPACT import acquire
 
@@ -120,10 +118,9 @@ def convertCapturedBufferToImage(capturedBuffer):
 
 def executeAcquisitionProcess(cameraObject,
                               cameraFunctionalInterface,
-                              recordingDir,
+                              imageWriter,
                               timeout_ms=100):
     logger.info("Starting acquisition")
-
     statisticsObject = acquire.Statistics(cameraObject)
     pPreviousRequest = None
 
@@ -140,10 +137,11 @@ def executeAcquisitionProcess(cameraObject,
                             statisticsObject.captureTime_s.name() + ": " +
                             statisticsObject.captureTime_s.readS())
 
-                # TODO: Currently convert and write is bottleneck, create separate thread
                 capturedImage = convertCapturedBufferToImage(pRequest)
-                outImgFileName = "{}.jpg".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-                cv2.imwrite(os.path.join(recordingDir, outImgFileName), capturedImage)
+                imageObj = {}
+                imageObj["timestamp"] = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                imageObj["image"] = capturedImage
+                imageWriter.addImageToBuffer(imageObj)
 
                 if pPreviousRequest is not None:
                     pPreviousRequest.unlock()

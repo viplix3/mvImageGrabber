@@ -15,6 +15,9 @@ class ImageIO:
         self.imageBuffer = deque(maxlen=bufferSize)
         self.writeBufferSize = writeFreqCount
 
+        self.currWriteDate = None
+        self.currWriteHour = None
+
         self.exitEvent = threading.Event()
         self.imageBufferLock = threading.Lock()
         self.threadCondition = threading.Condition()
@@ -34,7 +37,7 @@ class ImageIO:
         logger.info("Stopping immage IO thread")
 
         with self.threadCondition:
-            logger.info("Dumpining images in queue")
+            logger.info("Dumping images in queue")
             while len(self.imageBuffer) > 0:
                 imageData = self.imageBuffer.popleft()
                 self.dumpImageToDisk(imageData)
@@ -53,6 +56,15 @@ class ImageIO:
                         imageData = self.imageBuffer.popleft()
                         self.dumpImageToDisk(imageData)
                 self.threadCondition.notify()
+
+    def updateWriteDirs(self, updateDate, updateTime):
+        self.currWriteDate = updateDate
+        self.currWriteHour = updateTime
+        next_hour = str((int(self.currWriteHour) + 1) % 24).zfill(2)
+        self.recordingDir = os.path.join(self.recordingDir,
+                                         self.currWriteDate,
+                                         "{}-{}".format(self.currWriteHour, next_hour))
+        os.makedirs(self.recordingDir, exist_ok=True)
 
     def dumpImageToDisk(self, image):
         cv2.imwrite(

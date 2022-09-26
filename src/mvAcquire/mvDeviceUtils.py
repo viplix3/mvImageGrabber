@@ -149,7 +149,16 @@ def executeAcquisitionProcess(cameraObject,
 
                     capturedImage = convertCapturedBufferToImage(pRequest)
                     imageObj = {}
-                    imageObj["timestamp"] = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
+                    currTimeStamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
+                    currDate = currTimeStamp.split("_")[0]
+                    currTime = currTimeStamp.split("_")[1]
+                    currHour = currTime.split("-")[0]
+
+                    if currDate != imageWriter.currWriteDate or \
+                       currHour != imageWriter.currWriteHour:
+                        imageWriter.updateWriteDirs(currDate, currHour)
+
+                    imageObj["timestamp"] = "{}_{}".format(currDate, currTime)
                     imageObj["image"] = capturedImage
                     imageWriter.addImageToBuffer(imageObj)
 

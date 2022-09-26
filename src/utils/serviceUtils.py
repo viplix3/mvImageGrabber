@@ -10,17 +10,8 @@ def readConfig(filename):
     return config
 
 
-def getDateTimeRecordingDir(opts):
-    next_hour = str((datetime.now().hour + 1) % 24).zfill(2)
-    recording_dir = os.path.join(
-        opts["dirs"]["recdir"],
-        datetime.now().strftime("%Y-%m-%0d/%H") + "H-" + str(next_hour) + "H",
-    )
-    return recording_dir
-
-
 def setupDirs(opts):
-    recordingDir = getDateTimeRecordingDir(opts)
+    recordingDir = opts["dirs"]["recdir"]
     logDir = opts["dirs"]["logdir"]
 
     os.makedirs(recordingDir, exist_ok=True)

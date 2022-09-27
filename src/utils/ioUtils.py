@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class ImageIO:
     def __init__(self, recordingDir, bufferSize=500, writeFreqCount=200):
-        self.recordingDir = recordingDir
+        self.recordingBaseDir = recordingDir
         self.bufferSize = bufferSize
         self.imageBuffer = deque(maxlen=bufferSize)
         self.writeBufferSize = writeFreqCount
@@ -58,13 +58,17 @@ class ImageIO:
                 self.threadCondition.notify()
 
     def updateWriteDirs(self, updateDate, updateTime):
+        logger.info("Changing output directory")
+
         self.currWriteDate = updateDate
         self.currWriteHour = updateTime
         next_hour = str((int(self.currWriteHour) + 1) % 24).zfill(2)
-        self.recordingDir = os.path.join(self.recordingDir,
+        self.recordingDir = os.path.join(self.recordingBaseDir,
                                          self.currWriteDate,
                                          "{}-{}".format(self.currWriteHour, next_hour))
         os.makedirs(self.recordingDir, exist_ok=True)
+
+        logger.info("Output direcotry changed to %s" % self.recordingDir)
 
     def dumpImageToDisk(self, image):
         cv2.imwrite(
